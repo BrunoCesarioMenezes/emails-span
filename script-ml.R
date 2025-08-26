@@ -7,6 +7,7 @@ library(tm)
 library(SnowballC)
 library(caTools)
 library(e1071)
+library(ROCR)
 
 #Lê base de dados, salva os resultados finais em
 #labels e salva os emails
@@ -51,10 +52,21 @@ model_nb <- naiveBayes(label ~ ., data = train_data)
 
 predicoes <- predict(model_nb, newdata = test_data, type = "raw")
 
-#Trata predicoes dos emails de acordo com a probabilidade
-#(deixa critério do modelo mais liberal)
+#Usa ROCR para calcular precisão
+pred <- prediction(predicoes[, "spam"], test_data$label)
+prec <- performance(pred, "prec")
 
-novo_predicoes <- ifelse(predicoes[, "spam"] > 0.9999999999999, "spam", "ham")
+prec_vals <- prec@y.values[[1]]
+thresh <- prec@x.values[[1]]
+
+# Threshold que dá maior precisão
+best_prec_idx <- which.max(prec_vals)
+best_prec_thresh <- thresh[best_prec_idx]
+
+#Trata predicoes dos emails de acordo com a probabilidade
+#(deixa critério do modelo mais conservador)
+
+novo_predicoes <- ifelse(predicoes[, "spam"] > best_prec_thresh, "spam", "ham")
 
 novo_predicoes <- as.factor(novo_predicoes)
 
