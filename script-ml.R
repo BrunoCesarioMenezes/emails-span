@@ -1,4 +1,5 @@
-setwd("C:\\AGD\\4-Repositórios\\email-ml-R\\data")
+setwd("data")
+getwd()
 
 library(readxl)
 library(tm)
@@ -10,6 +11,8 @@ data <- read.csv("spam_ham_dataset.csv")
 
 data$X <- NULL
 data$label <- as.factor(data$label)
+
+data <- data[1:500,]
 
 labels <- data$label
 emails <- data$text
